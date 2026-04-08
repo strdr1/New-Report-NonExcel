@@ -31,13 +31,17 @@ def get_local_ip():
         return '127.0.0.1'
 
 
+def get_base_dir():
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(os.path.abspath(sys.executable))
+    return os.path.dirname(os.path.abspath(__file__))
+
+
 def get_ngrok_exe():
     """Ищем ngrok.exe рядом с приложением или в PATH."""
-    base = os.path.dirname(os.path.abspath(sys.executable if getattr(sys, 'frozen', False) else __file__))
-    local = os.path.join(base, 'ngrok.exe')
+    local = os.path.join(get_base_dir(), 'ngrok.exe')
     if os.path.exists(local):
         return local
-    # Попробуем из PATH
     try:
         result = subprocess.run(['where', 'ngrok'], capture_output=True, text=True)
         if result.returncode == 0:
@@ -45,6 +49,29 @@ def get_ngrok_exe():
     except Exception:
         pass
     return None
+
+
+def download_ngrok():
+    """Скачиваем ngrok.exe автоматически."""
+    import urllib.request
+    import zipfile
+    import tempfile
+
+    dest = os.path.join(get_base_dir(), 'ngrok.exe')
+    url = 'https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip'
+
+    print('  Скачиваю ngrok...', end='', flush=True)
+    try:
+        tmp = tempfile.mktemp(suffix='.zip')
+        urllib.request.urlretrieve(url, tmp)
+        with zipfile.ZipFile(tmp, 'r') as z:
+            z.extract('ngrok.exe', get_base_dir())
+        os.remove(tmp)
+        print(' готово.')
+        return dest
+    except Exception as e:
+        print(f' ошибка: {e}')
+        return None
 
 
 def get_ngrok_url(port, timeout=10):
@@ -90,6 +117,10 @@ if __name__ == '__main__':
     app = create_app()
     ip = get_local_ip()
     port = 5000
+
+    # Скачиваем ngrok если нет
+    if not get_ngrok_exe():
+        download_ngrok()
 
     # Запускаем ngrok
     print('Запуск ngrok туннеля...')
