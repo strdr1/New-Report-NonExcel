@@ -11,7 +11,7 @@ import socket
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-if sys.stdout.encoding != 'utf-8':
+if sys.stdout and hasattr(sys.stdout, 'encoding') and sys.stdout.encoding != 'utf-8':
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 from backend.app import create_app

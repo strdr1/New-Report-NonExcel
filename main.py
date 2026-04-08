@@ -9,10 +9,10 @@ import sys
 import os
 import time
 
-# Фиксим кодировку вывода для Windows (cp1251 → utf-8)
-if sys.stdout.encoding != 'utf-8':
+# Фиксим кодировку вывода для Windows (при сборке stdout может быть None)
+if sys.stdout and hasattr(sys.stdout, 'encoding') and sys.stdout.encoding != 'utf-8':
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if sys.stderr.encoding != 'utf-8':
+if sys.stderr and hasattr(sys.stderr, 'encoding') and sys.stderr.encoding != 'utf-8':
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
 # Чтобы импорты backend работали из корня проекта
