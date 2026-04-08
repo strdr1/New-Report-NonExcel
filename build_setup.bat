@@ -69,24 +69,21 @@ echo [5/6] Copying nginx...
 xcopy /E /Y "nginx_win\*" "dist\FuelTracker\nginx\" >nul
 mkdir "dist\FuelTracker\nginx\logs" 2>nul
 
-REM [6] Inno Setup
-echo [6/6] Building installer...
-set INNO="C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-if not exist %INNO% set INNO="C:\Program Files\Inno Setup 6\ISCC.exe"
+REM [6] Собираем setup.exe (установщик на Python/tkinter)
+echo [6/6] Building setup.exe...
+pyinstaller --noconfirm --clean ^
+    --name "setup" ^
+    --onefile ^
+    --noconsole ^
+    --add-data "dist\FuelTracker;app" ^
+    installer.py
 
-if not exist %INNO% (
-    echo [WARNING] Inno Setup not found. Download: https://jrsoftware.org/isdl.php
-    echo EXE ready at: dist\FuelTracker\
-    pause
-    exit /b 0
-)
-
-mkdir "dist\installer" 2>nul
-%INNO% setup.iss
-if errorlevel 1 ( echo [ERROR] Inno Setup failed! & pause & exit /b 1 )
+if errorlevel 1 ( echo [ERROR] setup.exe build failed! & pause & exit /b 1 )
 
 echo.
 echo ============================================================
-echo   Done! Installer: dist\installer\FuelTracker_Setup.exe
+echo   Done!
+echo   Installer: dist\setup.exe
+echo   (просто дай пользователю этот файл)
 echo ============================================================
 pause
