@@ -1,8 +1,7 @@
-#define MyAppName "Fuel Tracker"
+#define MyAppName "Учёт топлива"
 #define MyAppVersion "1.0"
 #define MyAppPublisher "strdr1"
 #define MyAppURL "https://github.com/strdr1/New-Report-NonExcel"
-#define MyAppExeName "FuelTracker.exe"
 
 [Setup]
 AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
@@ -10,7 +9,6 @@ AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
-AppSupportURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
@@ -25,34 +23,20 @@ PrivilegesRequired=admin
 Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "desktopicon"; Description: "Создать ярлыки на рабочем столе"; GroupDescription: "Дополнительно:"; Flags: checked
 
 [Files]
-; Основное приложение (собранное PyInstaller)
 Source: "dist\FuelTracker\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
-; nginx
-Source: "nginx_win\*"; DestDir: "{app}\nginx"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: NginxExists
-
-; Скрипты запуска
-Source: "start.bat"; DestDir: "{app}"; Flags: ignoreversion
-Source: "start_server.bat"; DestDir: "{app}"; Flags: ignoreversion
-
 [Icons]
-; Десктоп приложение
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
-Name: "{group}\{#MyAppName} - Сервер (для телефона)"; Filename: "{app}\start_server.bat"; WorkingDir: "{app}"
-Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
+; Меню пуск
+Name: "{group}\Учёт топлива";                  Filename: "{app}\FuelTracker.exe";       WorkingDir: "{app}"; Comment: "Запуск в окне приложения"
+Name: "{group}\Учёт топлива (Сервер)";         Filename: "{app}\FuelTrackerServer.exe"; WorkingDir: "{app}"; Comment: "Запуск сервера — доступ с телефона"
+Name: "{group}\Удалить {#MyAppName}";          Filename: "{uninstallexe}"
 
 ; Рабочий стол
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
-Name: "{autodesktop}\{#MyAppName} (Сервер)"; Filename: "{app}\start_server.bat"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autodesktop}\Учёт топлива";            Filename: "{app}\FuelTracker.exe";       WorkingDir: "{app}"; Comment: "Запуск в окне приложения"; Tasks: desktopicon
+Name: "{autodesktop}\Учёт топлива (Сервер)";   Filename: "{app}\FuelTrackerServer.exe"; WorkingDir: "{app}"; Comment: "Запуск сервера — доступ с телефона"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-
-[Code]
-function NginxExists: Boolean;
-begin
-  Result := FileExists(ExpandConstant('{src}\nginx_win\nginx.exe'));
-end;
+Filename: "{app}\FuelTracker.exe"; Description: "Запустить {#MyAppName}"; Flags: nowait postinstall skipifsilent
