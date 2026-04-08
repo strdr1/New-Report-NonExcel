@@ -37,13 +37,13 @@ def get_base_dir():
     return os.path.dirname(os.path.abspath(__file__))
 
 
-def get_ngrok_exe():
-    """Ищем ngrok.exe рядом с приложением или в PATH."""
-    local = os.path.join(get_base_dir(), 'ngrok.exe')
+def get_tunnel_exe():
+    """Ищем cloudflared.exe рядом с приложением или в PATH."""
+    local = os.path.join(get_base_dir(), 'cloudflared.exe')
     if os.path.exists(local):
         return local
     try:
-        result = subprocess.run(['where', 'ngrok'], capture_output=True, text=True)
+        result = subprocess.run(['where', 'cloudflared'], capture_output=True, text=True)
         if result.returncode == 0:
             return result.stdout.strip().splitlines()[0]
     except Exception:
@@ -51,22 +51,14 @@ def get_ngrok_exe():
     return None
 
 
-def download_ngrok():
-    """Скачиваем ngrok.exe автоматически."""
+def download_cloudflared():
+    """Скачиваем cloudflared.exe автоматически (Cloudflare Tunnel, без регистрации)."""
     import urllib.request
-    import zipfile
-    import tempfile
-
-    dest = os.path.join(get_base_dir(), 'ngrok.exe')
-    url = 'https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip'
-
-    print('  Скачиваю ngrok...', end='', flush=True)
+    dest = os.path.join(get_base_dir(), 'cloudflared.exe')
+    url = 'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe'
+    print('  Скачиваю cloudflared...', end='', flush=True)
     try:
-        tmp = tempfile.mktemp(suffix='.zip')
-        urllib.request.urlretrieve(url, tmp)
-        with zipfile.ZipFile(tmp, 'r') as z:
-            z.extract('ngrok.exe', get_base_dir())
-        os.remove(tmp)
+        urllib.request.urlretrieve(url, dest)
         print(' готово.')
         return dest
     except Exception as e:
@@ -74,42 +66,41 @@ def download_ngrok():
         return None
 
 
-def get_ngrok_url(port, timeout=10):
-    """Получаем публичный URL из ngrok API."""
-    import urllib.request
-    import json
+def get_cloudflared_url(proc, timeout=15):
+    """Читаем URL туннеля из вывода cloudflared."""
+    import re
     deadline = time.time() + timeout
     while time.time() < deadline:
         try:
-            with urllib.request.urlopen('http://127.0.0.1:4040/api/tunnels', timeout=2) as r:
-                data = json.loads(r.read())
-                tunnels = data.get('tunnels', [])
-                for t in tunnels:
-                    if t.get('proto') == 'https':
-                        return t['public_url']
-                    if t.get('proto') == 'http':
-                        return t['public_url']
+            line = proc.stderr.readline()
+            if not line:
+                time.sleep(0.2)
+                continue
+            line = line.decode('utf-8', errors='ignore')
+            # cloudflared печатает URL вида https://xxxx.trycloudflare.com
+            match = re.search(r'https://[a-z0-9\-]+\.trycloudflare\.com', line)
+            if match:
+                return match.group(0)
         except Exception:
-            pass
-        time.sleep(1)
+            break
     return None
 
 
-def start_ngrok(port):
-    """Запускаем ngrok и возвращаем публичный URL."""
-    ngrok = get_ngrok_exe()
-    if not ngrok:
+def start_tunnel(port):
+    """Запускаем cloudflared tunnel и возвращаем публичный URL."""
+    exe = get_tunnel_exe()
+    if not exe:
         return None, None
     try:
         proc = subprocess.Popen(
-            [ngrok, 'http', str(port), '--log=stdout'],
+            [exe, 'tunnel', '--url', f'http://localhost:{port}'],
             stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+            stderr=subprocess.PIPE
         )
-        url = get_ngrok_url(port)
+        url = get_cloudflared_url(proc)
         return proc, url
     except Exception as e:
-        print(f'ngrok error: {e}')
+        print(f'cloudflared error: {e}')
         return None, None
 
 
@@ -118,13 +109,13 @@ if __name__ == '__main__':
     ip = get_local_ip()
     port = 5000
 
-    # Скачиваем ngrok если нет
-    if not get_ngrok_exe():
-        download_ngrok()
+    # Скачиваем cloudflared если нет
+    if not get_tunnel_exe():
+        download_cloudflared()
 
-    # Запускаем ngrok
-    print('Запуск ngrok туннеля...')
-    ngrok_proc, public_url = start_ngrok(port)
+    # Запускаем туннель
+    print('Запуск туннеля Cloudflare...')
+    ngrok_proc, public_url = start_tunnel(port)
 
     print()
     print('=' * 55)
@@ -135,15 +126,7 @@ if __name__ == '__main__':
         print(f'  Интернет:        {public_url}')
         print(f'  (работает с любого места, любой сети)')
     else:
-        ngrok_exe = get_ngrok_exe()
-        if not ngrok_exe:
-            print()
-            print('  Для доступа из любого места:')
-            print('  1. Скачайте ngrok: https://ngrok.com/download')
-            print('  2. Положите ngrok.exe рядом с приложением')
-            print('  3. Перезапустите сервер')
-        else:
-            print('  ngrok не запустился. Проверьте ngrok.exe')
+        print('  Туннель не запустился (нет интернета?)')
     print('=' * 55)
     print()
     print('  Нажмите Ctrl+C для остановки.')
