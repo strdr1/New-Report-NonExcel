@@ -2,16 +2,14 @@ import os
 import sys
 from pathlib import Path
 
-# Папка с данными: C:\FuelTracker (создаётся setup-ом)
-# Если запуск из исходников — используем корень проекта
-DATA_DIR = Path(os.getenv('FUELTRACKER_DATA', r'C:\FuelTracker'))
-DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-# Если собрано PyInstaller — exe рядом с данными
+# Папка с данными = папка рядом с EXE (при сборке) или корень проекта (при разработке)
 if getattr(sys, 'frozen', False):
     BASE_DIR = Path(sys.executable).parent
 else:
     BASE_DIR = Path(__file__).resolve().parent.parent
+
+DATA_DIR = Path(os.getenv('FUELTRACKER_DATA', BASE_DIR))
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # Database
 DATABASE_PATH = os.getenv('DATABASE_PATH', DATA_DIR / 'fuel_tracking.db')
