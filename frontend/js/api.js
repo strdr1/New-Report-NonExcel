@@ -113,11 +113,11 @@ const API = {
         const r = await fetch(`${API_BASE}/update/check`);
         return r.json();
     },
-    async installUpdate(zip_url, tag) {
+    async installUpdate() {
         const r = await fetch(`${API_BASE}/update/install`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ zip_url, tag })
+            body: JSON.stringify({})
         });
         return r.json();
     },

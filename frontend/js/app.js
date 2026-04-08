@@ -974,22 +974,18 @@ function checkUpdates() {
     API.checkUpdate().then(data => {
         if (data.error) {
             document.getElementById('updateTitle').textContent = 'Ошибка';
-            document.getElementById('updateText').textContent = 'Не удалось проверить обновления: ' + data.error;
+            document.getElementById('updateText').textContent = 'Не удалось проверить: ' + data.error;
             return;
         }
         _updateData = data;
         if (data.has_update) {
             document.getElementById('updateTitle').textContent = '🎉 Доступно обновление!';
             document.getElementById('updateText').textContent =
-                `Текущая версия: ${data.current}\nНовая версия: ${data.latest}`;
+                `Текущая версия: ${data.current}\nНовая версия: ${data.latest} (${data.date})\n\n${data.message}`;
             document.getElementById('updateInstallBtn').style.display = 'inline-flex';
-            if (data.notes) {
-                document.getElementById('updateNotes').textContent = data.notes;
-                document.getElementById('updateNotes').style.display = 'block';
-            }
         } else {
             document.getElementById('updateTitle').textContent = '✓ У вас последняя версия';
-            document.getElementById('updateText').textContent = `Версия: ${data.current}`;
+            document.getElementById('updateText').textContent = `Версия: ${data.version} (${data.current})`;
         }
     }).catch(() => {
         document.getElementById('updateTitle').textContent = 'Ошибка';
@@ -1007,7 +1003,7 @@ function installUpdate() {
     document.getElementById('updateProgressText').textContent = 'Начинаю загрузку...';
     document.getElementById('updateBar').style.width = '10%';
 
-    API.installUpdate(_updateData.zip_url, _updateData.latest).then(() => {
+    API.installUpdate().then(() => {
         _updatePollInterval = setInterval(_pollUpdateProgress, 1000);
     });
 }
@@ -1026,8 +1022,8 @@ function _pollUpdateProgress() {
             bar.style.width = '100%';
             txt.textContent = data.message;
             clearInterval(_updatePollInterval);
-            document.getElementById('updateTitle').textContent = '✓ Обновление установлено';
-            document.getElementById('updateText').textContent = 'Перезапустите приложение чтобы применить изменения.';
+            document.getElementById('updateTitle').textContent = '✓ Готово';
+            document.getElementById('updateText').textContent = data.message;
         } else if (data.status === 'error') {
             clearInterval(_updatePollInterval);
             document.getElementById('updateTitle').textContent = 'Ошибка обновления';
