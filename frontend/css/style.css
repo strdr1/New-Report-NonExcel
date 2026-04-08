@@ -1,0 +1,448 @@
+/* ===================== RESET & BASE ===================== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --blue:       #1565c0;
+    --blue-light: #1976d2;
+    --blue-dark:  #0d47a1;
+    --accent:     #ff6f00;
+    --bg:         #eceff1;
+    --surface:    #ffffff;
+    --border:     #cfd8dc;
+    --text:       #212121;
+    --text-muted: #607d8b;
+    --yellow:     #fffde7;
+    --yellow-b:   #f9a825;
+    --grey-cell:  #f1f3f4;
+    --red:        #c62828;
+    --green:      #2e7d32;
+    --radius:     8px;
+    --shadow:     0 2px 8px rgba(0,0,0,.12);
+    --shadow-lg:  0 4px 20px rgba(0,0,0,.16);
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+}
+
+/* ===================== LAYOUT ===================== */
+#app { max-width: 1400px; margin: 0 auto; padding: 16px; }
+
+header {
+    background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 60%, var(--blue-light) 100%);
+    color: #fff;
+    padding: 18px 24px;
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: .5px;
+    flex: 1;
+}
+
+#breadcrumb {
+    font-size: 13px;
+    color: rgba(255,255,255,.75);
+    background: rgba(0,0,0,.15);
+    padding: 4px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+#content {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px;
+}
+
+/* ===================== BUTTONS ===================== */
+button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--blue-light);
+    color: #fff;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background .15s, box-shadow .15s, transform .1s;
+    box-shadow: 0 1px 4px rgba(0,0,0,.2);
+}
+button:hover  { background: var(--blue); box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+button:active { transform: translateY(1px); }
+
+button.secondary { background: #546e7a; }
+button.secondary:hover { background: #37474f; }
+button.danger    { background: var(--red); }
+button.danger:hover    { background: #b71c1c; }
+button.btn-back  { background: #455a64; }
+button.btn-back:hover  { background: #263238; }
+
+.page-actions { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+
+/* ===================== CARDS (profiles / years / months) ===================== */
+.profile-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 20px; }
+.year-grid    { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-top: 20px; }
+.month-grid   { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; margin-top: 20px; }
+
+.profile-card, .year-card, .month-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    cursor: pointer;
+    transition: box-shadow .2s, transform .15s, border-color .2s;
+    box-shadow: var(--shadow);
+}
+.profile-card:hover, .year-card:hover, .month-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+    border-color: var(--blue-light);
+}
+.profile-card h3, .year-card h3, .month-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--blue-dark);
+    margin-bottom: 6px;
+}
+.profile-card p, .year-card p, .month-card p { color: var(--text-muted); font-size: 13px; margin-bottom: 4px; }
+.profile-card .card-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+/* ===================== FORMS ===================== */
+form { display: flex; flex-direction: column; gap: 16px; max-width: 560px; }
+form label { font-weight: 600; color: var(--text); }
+form input, form select, form textarea {
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    background: var(--surface);
+    transition: border-color .15s, box-shadow .15s;
+    width: 100%;
+}
+form input:focus, form select:focus {
+    border-color: var(--blue-light);
+    box-shadow: 0 0 0 3px rgba(25,118,210,.15);
+    outline: none;
+}
+.form-actions { display: flex; gap: 10px; margin-top: 8px; }
+
+/* Fieldset в форме профиля */
+fieldset {
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 8px;
+}
+fieldset legend {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--blue);
+    padding: 0 8px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+
+/* ===================== MONTH HEADER ===================== */
+.month-header {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border: 1px solid #90caf9;
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.month-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--blue-dark);
+    margin-bottom: 14px;
+}
+.month-meta {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+}
+.meta-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.meta-label { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); }
+.meta-value { font-size: 17px; font-weight: 700; color: var(--blue-dark); }
+.meta-rate  { }
+.rate-input-wrap { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.rate-input-wrap input {
+    width: 80px; padding: 5px 8px; border: 1.5px solid #90caf9;
+    border-radius: 6px; text-align: center; font-size: 15px; font-weight: 700;
+    color: var(--blue-dark); background: #fff;
+}
+.rate-input-wrap input:focus { border-color: var(--blue); outline: none; }
+.rate-input-wrap span { font-size: 13px; color: var(--text-muted); }
+.rate-input-wrap small { font-size: 11px; color: #888; }
+
+/* ===================== TABLE SECTIONS ===================== */
+.table-section { margin-top: 28px; }
+.table-section h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--blue-dark);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--blue-light);
+    display: inline-block;
+}
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); }
+
+.table-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    margin-top: -4px;
+}
+.hint-yellow { background: var(--yellow); border: 1px solid var(--yellow-b); padding: 1px 8px; border-radius: 4px; }
+.hint-grey   { background: var(--grey-cell); border: 1px solid #bdbdbd; padding: 1px 8px; border-radius: 4px; }
+
+/* ===================== TABLES ===================== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    font-size: 12px;
+    margin: 0;
+}
+
+table th {
+    background: linear-gradient(to bottom, #1976d2, #1565c0);
+    color: #fff;
+    font-weight: 600;
+    text-align: center;
+    padding: 8px 6px;
+    border: 1px solid #1565c0;
+    white-space: nowrap;
+    min-width: 70px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+table td {
+    border: 1px solid #dde;
+    padding: 3px 7px;
+    min-width: 70px;
+    white-space: nowrap;
+    color: var(--text);
+    position: relative;
+}
+
+tr.even-row   { background: #fafafa; }
+tr.weekend-row { background: #fff8e1; }
+tr.total-row  { background: #e3f2fd; font-weight: 700; border-top: 2px solid var(--blue-light); }
+tr.total-row td { text-align: center; }
+
+table tr:hover td { background: rgba(25,118,210,.04) !important; }
+
+.date-cell { text-align: center; font-weight: 600; color: #37474f; }
+.dow-cell  { text-align: center; font-weight: 600; color: var(--text-muted); }
+.dow-cell.weekend { color: #e53935; }
+
+/* ===================== EDITABLE CELLS ===================== */
+.editable {
+    cursor: cell;
+    user-select: none;
+}
+.input-cell {
+    background: var(--yellow) !important;
+    text-align: right;
+}
+.calc-cell {
+    background: var(--grey-cell) !important;
+    color: #455a64;
+    text-align: right;
+}
+.editable:hover { outline: 1px solid var(--blue-light); }
+.editable.selected { outline: 2px solid var(--blue-light) !important; outline-offset: -2px; background: #fff !important; }
+/* Нативный input внутри ячейки при редактировании */
+.editable:has(input.cell-input) { background: #fff !important; outline: 2px solid var(--blue-light) !important; outline-offset: -2px; }
+.editable.fill-target {
+    background: #e3f2fd !important;
+    outline: 2px dashed var(--blue-light);
+    outline-offset: -2px;
+}
+
+/* ===================== REPORT INFO ===================== */
+.report-info {
+    margin-top: 20px;
+    margin-bottom: 8px;
+    background: var(--grey-cell);
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+.report-info strong { color: var(--text); }
+
+/* ===================== PROFILE FORM IMAGE ===================== */
+.profile-form-image {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.profile-form-image img {
+    max-width: 180px;
+    max-height: 140px;
+    object-fit: contain;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 3px solid var(--blue-light);
+}
+
+/* ===================== FILL HANDLE ===================== */
+.fill-handle {
+    position: absolute;
+    right: -4px;
+    bottom: -4px;
+    width: 8px;
+    height: 8px;
+    background: var(--blue-light);
+    border: 1px solid white;
+    cursor: crosshair;
+    z-index: 10;
+}
+
+/* ===================== GLOBAL FORMAT BAR ===================== */
+.global-format-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--grey-cell);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+.global-format-bar span { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+.global-format-bar button { padding: 4px 10px; font-size: 12px; }
+.global-format-bar select { padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; background: #fff; }
+
+/* ===================== TOOLBAR ===================== */
+.cell-format-toolbar {
+    position: fixed;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+.cell-format-toolbar button   { padding: 4px 10px; min-width: 28px; }
+.cell-format-toolbar select   { padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
+.cell-format-toolbar input[type="color"] { width: 36px; height: 28px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; }
+
+/* ===================== CONTEXT MENU ===================== */
+.context-menu {
+    position: absolute;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    z-index: 1001;
+    min-width: 190px;
+    overflow: hidden;
+}
+.context-menu-header {
+    padding: 9px 14px;
+    background: var(--grey-cell);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    font-size: 12px;
+}
+.context-menu-close {
+    background: none; border: none; font-size: 16px; cursor: pointer;
+    color: var(--text-muted); width: 22px; height: 22px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+}
+.context-menu-close:hover { background: #eceff1; }
+.context-menu-item {
+    padding: 9px 14px; cursor: pointer; font-size: 13px;
+    display: flex; align-items: center; gap: 8px;
+}
+.context-menu-item:hover { background: #e3f2fd; }
+
+/* ===================== REPORT SIGNATURE ===================== */
+.report-signature {
+    margin-top: 32px;
+    padding: 20px 0 8px;
+    font-size: 14px;
+    line-height: 2.4;
+    border-top: 1px solid var(--border);
+}
+.sig-line { margin-bottom: 6px; }
+.sig-val  { font-weight: 700; color: var(--blue-dark); }
+.sig-blank {
+    display: inline-block;
+    width: 120px;
+    border-bottom: 1.5px solid #333;
+    vertical-align: bottom;
+    margin: 0 6px;
+}
+.sig-blank-sm { width: 80px; }
+.sig-driver { margin-top: 20px; }
+
+/* ===================== PRINT ===================== */
+@media print {
+    @page { size: A4 portrait; margin: 0.6cm 0.8cm; }
+
+    /* print-frame управляется через JS (display:block/none inline style) */
+    /* Здесь только дополнительные гарантии */
+    #print-frame * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ===================== PRINT FRAME CONTENT ===================== */
+#print-frame {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 8px; color: #000 !important; background: #fff !important;
+    position: fixed; top: 0; left: 0; width: 100%; z-index: 9999;
+    padding: 0; margin: 0;
+}
+#print-frame * { color: #000 !important; background: #fff !important; outline: none !important; box-shadow: none !important; border-color: #000 !important; }
+#print-frame th, #print-frame td { border-style: solid !important; }
+
+#print-frame .section-title {
+    font-size: 9px; font-weight: 700; margin-bottom: 3px;
+    border-bottom: 1px solid #000; padding-bottom: 1px;
+}
+#print-frame table {
+    width: 100%; border-collapse: separate !important; border-spacing: 0 !important; font-size: 8px; table-layout: auto;
+}
+/* th и td стилизуются через inline-стили в _PS (app.js) */
+
+#print-frame .p-signature { margin-top: 10px; font-size: 9px; line-height: 2.0; }
+#print-frame .p-sig-line  { margin-bottom: 1px; }
+#print-frame .p-sig-val   { font-weight: 700; }
+#print-frame .p-sig-blank {
+    display: inline-block; width: 90px;
+    border-bottom: 1px solid #000 !important; vertical-align: bottom; margin: 0 4px;
+    background: transparent !important;
+}
+#print-frame .p-sig-blank-sm { width: 55px; }
+#print-frame .p-sig-driver   { margin-top: 6px; }
