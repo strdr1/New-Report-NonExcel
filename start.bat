@@ -22,7 +22,7 @@ if not errorlevel 1 (
     git status -uno | find "behind" >nul 2>&1
     if not errorlevel 1 (
         echo Update found, applying...
-        git pull origin main >nul 2>&1
+        git pull origin main --rebase >nul 2>&1
         echo Updated to latest version.
     ) else (
         echo No updates.
