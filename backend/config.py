@@ -1,19 +1,28 @@
 import os
+import sys
 from pathlib import Path
 
-# Base directory
-BASE_DIR = Path(__file__).resolve().parent.parent
+# Папка с данными: C:\FuelTracker (создаётся setup-ом)
+# Если запуск из исходников — используем корень проекта
+DATA_DIR = Path(os.getenv('FUELTRACKER_DATA', r'C:\FuelTracker'))
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-# Database configuration
-DATABASE_PATH = os.getenv('DATABASE_PATH', BASE_DIR / 'fuel_tracking.db')
+# Если собрано PyInstaller — exe рядом с данными
+if getattr(sys, 'frozen', False):
+    BASE_DIR = Path(sys.executable).parent
+else:
+    BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Database
+DATABASE_PATH = os.getenv('DATABASE_PATH', DATA_DIR / 'fuel_tracking.db')
 SQLALCHEMY_DATABASE_URI = f'sqlite:///{DATABASE_PATH}'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-# Flask configuration
+# Flask
 SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
-DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 HOST = os.getenv('HOST', '127.0.0.1')
 PORT = int(os.getenv('PORT', 5000))
 
-# CORS configuration
+# CORS
 CORS_ORIGINS = os.getenv('CORS_ORIGINS', '*')
