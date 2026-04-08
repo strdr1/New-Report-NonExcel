@@ -106,5 +106,23 @@ const API = {
             body: JSON.stringify(data)
         });
         return response.json();
+    },
+
+    // Updates
+    async checkUpdate() {
+        const r = await fetch(`${API_BASE}/update/check`);
+        return r.json();
+    },
+    async installUpdate(zip_url, tag) {
+        const r = await fetch(`${API_BASE}/update/install`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ zip_url, tag })
+        });
+        return r.json();
+    },
+    async updateProgress() {
+        const r = await fetch(`${API_BASE}/update/progress`);
+        return r.json();
     }
 };

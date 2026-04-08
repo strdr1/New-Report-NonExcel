@@ -11,7 +11,29 @@
         <header>
             <h1>Отслеживание расхода бензина</h1>
             <nav id="breadcrumb"></nav>
+            <button id="updateBtn" onclick="checkUpdates()" class="secondary" style="white-space:nowrap;font-size:12px;padding:6px 14px;">
+                🔄 Обновления
+            </button>
         </header>
+
+        <!-- Модалка обновления -->
+        <div id="updateModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;align-items:center;justify-content:center;">
+            <div style="background:#fff;border-radius:10px;padding:28px 32px;min-width:380px;max-width:480px;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+                <h3 id="updateTitle" style="margin-bottom:12px;color:#1565c0;">Проверка обновлений</h3>
+                <p id="updateText" style="margin-bottom:16px;color:#444;line-height:1.6;"></p>
+                <div id="updateProgress" style="display:none;margin-bottom:16px;">
+                    <div style="background:#e3f2fd;border-radius:6px;height:8px;overflow:hidden;">
+                        <div id="updateBar" style="background:#1565c0;height:100%;width:0%;transition:width .3s;"></div>
+                    </div>
+                    <p id="updateProgressText" style="font-size:12px;color:#666;margin-top:6px;"></p>
+                </div>
+                <div id="updateNotes" style="display:none;background:#f5f5f5;border-radius:6px;padding:10px;font-size:12px;color:#555;margin-bottom:16px;max-height:100px;overflow-y:auto;"></div>
+                <div style="display:flex;gap:10px;justify-content:flex-end;">
+                    <button id="updateInstallBtn" style="display:none;" onclick="installUpdate()">Установить</button>
+                    <button onclick="closeUpdateModal()" class="secondary">Закрыть</button>
+                </div>
+            </div>
+        </div>
         
         <main id="content">
             <!-- Dynamic content will be loaded here -->

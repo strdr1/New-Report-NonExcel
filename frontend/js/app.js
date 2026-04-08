@@ -958,6 +958,90 @@ function printSignature() {
     `);
 }
 
+// ===================== UPDATES =====================
+let _updateData = null;
+let _updatePollInterval = null;
+
+function checkUpdates() {
+    const modal = document.getElementById('updateModal');
+    modal.style.display = 'flex';
+    document.getElementById('updateTitle').textContent = 'Проверка обновлений...';
+    document.getElementById('updateText').textContent = 'Подключаюсь к серверу...';
+    document.getElementById('updateInstallBtn').style.display = 'none';
+    document.getElementById('updateProgress').style.display = 'none';
+    document.getElementById('updateNotes').style.display = 'none';
+
+    API.checkUpdate().then(data => {
+        if (data.error) {
+            document.getElementById('updateTitle').textContent = 'Ошибка';
+            document.getElementById('updateText').textContent = 'Не удалось проверить обновления: ' + data.error;
+            return;
+        }
+        _updateData = data;
+        if (data.has_update) {
+            document.getElementById('updateTitle').textContent = '🎉 Доступно обновление!';
+            document.getElementById('updateText').textContent =
+                `Текущая версия: ${data.current}\nНовая версия: ${data.latest}`;
+            document.getElementById('updateInstallBtn').style.display = 'inline-flex';
+            if (data.notes) {
+                document.getElementById('updateNotes').textContent = data.notes;
+                document.getElementById('updateNotes').style.display = 'block';
+            }
+        } else {
+            document.getElementById('updateTitle').textContent = '✓ У вас последняя версия';
+            document.getElementById('updateText').textContent = `Версия: ${data.current}`;
+        }
+    }).catch(() => {
+        document.getElementById('updateTitle').textContent = 'Ошибка';
+        document.getElementById('updateText').textContent = 'Нет подключения к интернету.';
+    });
+}
+
+function installUpdate() {
+    if (!_updateData?.zip_url) {
+        alert('Нет ссылки на обновление.');
+        return;
+    }
+    document.getElementById('updateInstallBtn').style.display = 'none';
+    document.getElementById('updateProgress').style.display = 'block';
+    document.getElementById('updateProgressText').textContent = 'Начинаю загрузку...';
+    document.getElementById('updateBar').style.width = '10%';
+
+    API.installUpdate(_updateData.zip_url, _updateData.latest).then(() => {
+        _updatePollInterval = setInterval(_pollUpdateProgress, 1000);
+    });
+}
+
+function _pollUpdateProgress() {
+    API.updateProgress().then(data => {
+        const bar = document.getElementById('updateBar');
+        const txt = document.getElementById('updateProgressText');
+        if (data.status === 'downloading') {
+            bar.style.width = '40%';
+            txt.textContent = data.message;
+        } else if (data.status === 'extracting') {
+            bar.style.width = '80%';
+            txt.textContent = data.message;
+        } else if (data.status === 'done') {
+            bar.style.width = '100%';
+            txt.textContent = data.message;
+            clearInterval(_updatePollInterval);
+            document.getElementById('updateTitle').textContent = '✓ Обновление установлено';
+            document.getElementById('updateText').textContent = 'Перезапустите приложение чтобы применить изменения.';
+        } else if (data.status === 'error') {
+            clearInterval(_updatePollInterval);
+            document.getElementById('updateTitle').textContent = 'Ошибка обновления';
+            document.getElementById('updateText').textContent = data.message;
+            document.getElementById('updateProgress').style.display = 'none';
+        }
+    });
+}
+
+function closeUpdateModal() {
+    document.getElementById('updateModal').style.display = 'none';
+    if (_updatePollInterval) clearInterval(_updatePollInterval);
+}
+
 // Cell formatting
 let currentFormattedCell = null;
 

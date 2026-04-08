@@ -7,11 +7,11 @@ echo [1/6] Installing pyinstaller...
 python -m pip install pyinstaller -q
 
 echo [2/6] Building FuelTracker.exe (desktop)...
-python -m PyInstaller --noconfirm --clean --name FuelTracker --onedir --noconsole --add-data "frontend;frontend" --add-data "backend;backend" --hidden-import webview.platforms.edgechromium --hidden-import flask --hidden-import flask_cors --hidden-import sqlalchemy --hidden-import sqlalchemy.dialects.sqlite --hidden-import backend.routes.profiles --hidden-import backend.routes.years --hidden-import backend.routes.months main.py
+python -m PyInstaller --noconfirm --clean --name FuelTracker --onedir --noconsole --add-data "frontend;frontend" --add-data "backend;backend" --add-data "version.txt;." --hidden-import webview.platforms.edgechromium --hidden-import flask --hidden-import flask_cors --hidden-import sqlalchemy --hidden-import sqlalchemy.dialects.sqlite --hidden-import backend.routes.profiles --hidden-import backend.routes.years --hidden-import backend.routes.months --hidden-import backend.routes.update main.py
 if errorlevel 1 ( echo ERROR: FuelTracker build failed! & pause & exit /b 1 )
 
 echo [3/6] Building FuelTrackerServer.exe (server)...
-python -m PyInstaller --noconfirm --clean --name FuelTrackerServer --onedir --console --add-data "frontend;frontend" --add-data "backend;backend" --hidden-import flask --hidden-import flask_cors --hidden-import sqlalchemy --hidden-import sqlalchemy.dialects.sqlite --hidden-import backend.routes.profiles --hidden-import backend.routes.years --hidden-import backend.routes.months server.py
+python -m PyInstaller --noconfirm --clean --name FuelTrackerServer --onedir --console --add-data "frontend;frontend" --add-data "backend;backend" --add-data "version.txt;." --hidden-import flask --hidden-import flask_cors --hidden-import sqlalchemy --hidden-import sqlalchemy.dialects.sqlite --hidden-import backend.routes.profiles --hidden-import backend.routes.years --hidden-import backend.routes.months --hidden-import backend.routes.update server.py
 if errorlevel 1 ( echo ERROR: FuelTrackerServer build failed! & pause & exit /b 1 )
 
 echo [4/6] Merging into one folder...
