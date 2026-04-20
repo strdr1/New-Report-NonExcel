@@ -139,6 +139,7 @@ def get_report(profile_id, year_value, month_num):
                 'fuel_waybill': fuel_waybill if km_za_den > 0 else None,
             })
 
+            odometer_end_report = max_odometer_end + km_za_den if km_za_den > 0 else None
             if odometer_end_report and odometer_end_report > max_odometer_end:
                 max_odometer_end = odometer_end_report
             if km_za_den > 0:
