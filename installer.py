@@ -203,17 +203,14 @@ class InstallerApp:
             self.progress['value'] = 90
 
             app_exe    = os.path.join(install_dir, 'FuelTracker.exe')
-            server_exe = os.path.join(install_dir, 'FuelTrackerServer.exe')
             desktop    = get_desktop()
             start_menu = os.path.join(get_start_menu(), APP_NAME)
             os.makedirs(start_menu, exist_ok=True)
 
             if self.desktop_var.get():
-                create_shortcut(app_exe,    os.path.join(desktop, f'{APP_NAME}.lnk'),            install_dir, 'Запуск в окне приложения')
-                create_shortcut(server_exe, os.path.join(desktop, f'{APP_NAME} (Сервер).lnk'),   install_dir, 'Запуск сервера — доступ с телефона')
+                create_shortcut(app_exe, os.path.join(desktop, f'{APP_NAME}.lnk'), install_dir, 'Учёт топлива')
 
-            create_shortcut(app_exe,    os.path.join(start_menu, f'{APP_NAME}.lnk'),           install_dir)
-            create_shortcut(server_exe, os.path.join(start_menu, f'{APP_NAME} (Сервер).lnk'), install_dir)
+            create_shortcut(app_exe, os.path.join(start_menu, f'{APP_NAME}.lnk'), install_dir)
 
             # Uninstaller + регистрация
             write_uninstaller(install_dir)
