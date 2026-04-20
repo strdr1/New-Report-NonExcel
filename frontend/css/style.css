@@ -267,7 +267,7 @@ table tr:hover td { background: rgba(25,118,210,.04) !important; }
     user-select: none;
 }
 .input-cell {
-    background: #bbdefb !important;
+    background: #e3f2fd !important;
     text-align: right;
 }
 .calc-cell {
