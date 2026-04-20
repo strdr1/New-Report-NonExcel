@@ -123,27 +123,20 @@ def get_report(profile_id, year_value, month_num):
                 rec.odometer_end_day, rec.distance_km, max_odometer_end
             )
 
-            # Начало дня (л): если это первый день с пробегом — K4, иначе H_предыдущего
-            fuel_start = prev_fuel_remaining if km_za_den > 0 else None
-
-            odometer_start = max_odometer_end if km_za_den > 0 else None
-            odometer_end_report = (max_odometer_end + km_za_den) if km_za_den > 0 else None
-
             fuel_waybill = CalculationService.calculate_fuel_waybill(km_za_den, fuel_rate)
             fuel_remaining = CalculationService.calculate_fuel_remaining(
                 prev_fuel_remaining, fuel_waybill, rec.fuel_received, km_za_den
             )
-            fuel_end = fuel_remaining if km_za_den > 0 else None
 
             report_rows.append({
                 'day': rec.day,
-                'odometer_start': odometer_start,       # D: начало дня км
-                'fuel_start': fuel_start,               # E: начало дня л
-                'odometer_end': odometer_end_report,    # F: конец дня км
-                'fuel_end': fuel_end,                   # G: конец дня л
-                'fuel_received': rec.fuel_received,     # H: получено бензина
-                'km_za_den': km_za_den if km_za_den > 0 else None,  # I: за день км
-                'fuel_waybill': fuel_waybill if km_za_den > 0 else None,  # J: за день л
+                'odometer_start': max_odometer_end,
+                'fuel_start': prev_fuel_remaining,
+                'odometer_end': max_odometer_end + km_za_den if km_za_den > 0 else None,
+                'fuel_end': fuel_remaining,
+                'fuel_received': rec.fuel_received,
+                'km_za_den': km_za_den if km_za_den > 0 else None,
+                'fuel_waybill': fuel_waybill if km_za_den > 0 else None,
             })
 
             if odometer_end_report and odometer_end_report > max_odometer_end:
