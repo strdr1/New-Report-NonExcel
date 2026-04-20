@@ -1028,7 +1028,6 @@ function checkUpdates() {
     document.getElementById('updateText').textContent = 'Подключаюсь к серверу...';
     document.getElementById('updateInstallBtn').style.display = 'none';
     document.getElementById('updateProgress').style.display = 'none';
-    document.getElementById('updateNotes').style.display = 'none';
 
     API.checkUpdate().then(data => {
         if (data.error) {
@@ -1038,13 +1037,22 @@ function checkUpdates() {
         }
         _updateData = data;
         if (data.has_update) {
-            document.getElementById('updateTitle').textContent = '🎉 Доступно обновление!';
+            const canInstall = data.is_exe && data.download_url;
+            document.getElementById('updateTitle').textContent = 'Доступно обновление!';
             document.getElementById('updateText').textContent =
                 `Текущая версия: ${data.current}\nНовая версия: ${data.latest} (${data.date})\n\n${data.message}`;
-            document.getElementById('updateInstallBtn').style.display = 'inline-flex';
+            if (canInstall) {
+                document.getElementById('updateInstallBtn').style.display = 'inline-flex';
+            } else if (!data.is_exe) {
+                document.getElementById('updateText').textContent +=
+                    '\n\nДля обновления перезапустите через start.bat.';
+            } else {
+                document.getElementById('updateText').textContent +=
+                    '\n\nEXE не найден в релизе. Скачайте вручную с GitHub.';
+            }
         } else {
-            document.getElementById('updateTitle').textContent = '✓ У вас последняя версия';
-            document.getElementById('updateText').textContent = `Версия: ${data.version} (${data.current})`;
+            document.getElementById('updateTitle').textContent = 'У вас последняя версия';
+            document.getElementById('updateText').textContent = `Версия: ${data.version}`;
         }
     }).catch(() => {
         document.getElementById('updateTitle').textContent = 'Ошибка';
@@ -1053,17 +1061,20 @@ function checkUpdates() {
 }
 
 function installUpdate() {
-    if (!_updateData?.zip_url) {
-        alert('Нет ссылки на обновление.');
+    if (!_updateData?.download_url) {
+        alert('Нет ссылки на скачивание.');
         return;
     }
     document.getElementById('updateInstallBtn').style.display = 'none';
     document.getElementById('updateProgress').style.display = 'block';
     document.getElementById('updateProgressText').textContent = 'Начинаю загрузку...';
-    document.getElementById('updateBar').style.width = '10%';
+    document.getElementById('updateBar').style.width = '5%';
 
     API.installUpdate().then(() => {
-        _updatePollInterval = setInterval(_pollUpdateProgress, 1000);
+        _updatePollInterval = setInterval(_pollUpdateProgress, 800);
+    }).catch(e => {
+        document.getElementById('updateTitle').textContent = 'Ошибка';
+        document.getElementById('updateText').textContent = 'Не удалось начать: ' + e.message;
     });
 }
 
@@ -1072,22 +1083,23 @@ function _pollUpdateProgress() {
         const bar = document.getElementById('updateBar');
         const txt = document.getElementById('updateProgressText');
         if (data.status === 'downloading') {
-            bar.style.width = '40%';
+            bar.style.width = (data.progress || 30) + '%';
             txt.textContent = data.message;
-        } else if (data.status === 'extracting') {
-            bar.style.width = '80%';
+        } else if (data.status === 'installing') {
+            bar.style.width = '99%';
             txt.textContent = data.message;
         } else if (data.status === 'done') {
             bar.style.width = '100%';
             txt.textContent = data.message;
             clearInterval(_updatePollInterval);
-            document.getElementById('updateTitle').textContent = '✓ Готово';
+            document.getElementById('updateTitle').textContent = 'Готово!';
             document.getElementById('updateText').textContent = data.message;
         } else if (data.status === 'error') {
             clearInterval(_updatePollInterval);
             document.getElementById('updateTitle').textContent = 'Ошибка обновления';
             document.getElementById('updateText').textContent = data.message;
             document.getElementById('updateProgress').style.display = 'none';
+            document.getElementById('updateInstallBtn').style.display = 'inline-flex';
         }
     });
 }
