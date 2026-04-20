@@ -82,15 +82,6 @@ def get_month(profile_id, year_value, month_num):
             DailyRecord.month_id == month.id
         ).order_by(DailyRecord.day).all()
 
-        # День 1: если спидометр конец дня не заполнен — подставляем начальный спидометр
-        if records and records[0].day == 1 and not records[0].odometer_end_day and initial_odometer:
-            records[0].odometer_end_day = initial_odometer
-            db.commit()
-            # Пересчитываем с первого дня
-            fuel_rate_val = _fuel_rate(profile, month_num, month)
-            CalculationService.recalculate_from(records, 0, initial_odometer, initial_fuel, fuel_rate_val)
-            db.commit()
-
         result = month.to_dict()
         result['computed_initial_odometer'] = initial_odometer
         result['computed_initial_fuel'] = initial_fuel
