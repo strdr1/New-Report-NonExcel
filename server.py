@@ -104,6 +104,19 @@ def start_tunnel(port):
         return None, None
 
 
+def wait_for_flask(port, timeout=15):
+    """Ждём пока Flask поднимется и начнёт слушать порт."""
+    import urllib.request
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            urllib.request.urlopen(f'http://127.0.0.1:{port}/', timeout=1)
+            return True
+        except Exception:
+            time.sleep(0.3)
+    return False
+
+
 if __name__ == '__main__':
     app = create_app()
     ip = get_local_ip()
@@ -113,7 +126,18 @@ if __name__ == '__main__':
     if not get_tunnel_exe():
         download_cloudflared()
 
-    # Запускаем туннель
+    # Запускаем Flask в фоне
+    flask_thread = threading.Thread(
+        target=lambda: app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False),
+        daemon=True
+    )
+    flask_thread.start()
+
+    # Ждём пока Flask реально поднимется
+    print('Запуск сервера...')
+    wait_for_flask(port)
+
+    # Только после этого запускаем туннель
     print('Запуск туннеля Cloudflare...')
     ngrok_proc, public_url = start_tunnel(port)
 
@@ -133,7 +157,9 @@ if __name__ == '__main__':
     print()
 
     try:
-        app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
+        flask_thread.join()
+    except KeyboardInterrupt:
+        pass
     finally:
         if ngrok_proc:
             ngrok_proc.terminate()

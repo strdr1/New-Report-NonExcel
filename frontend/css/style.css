@@ -215,6 +215,8 @@ fieldset legend {
 }
 .hint-yellow { background: var(--yellow); border: 1px solid var(--yellow-b); padding: 1px 8px; border-radius: 4px; }
 .hint-grey   { background: var(--grey-cell); border: 1px solid #bdbdbd; padding: 1px 8px; border-radius: 4px; }
+.hint-blue   { background: #bbdefb; border: 1px solid #64b5f6; padding: 1px 8px; border-radius: 4px; }
+.hint-red    { background: #ffcdd2; border: 1px solid #e57373; padding: 1px 8px; border-radius: 4px; }
 
 /* ===================== TABLES ===================== */
 table {
@@ -265,11 +267,11 @@ table tr:hover td { background: rgba(25,118,210,.04) !important; }
     user-select: none;
 }
 .input-cell {
-    background: var(--yellow) !important;
+    background: #bbdefb !important;
     text-align: right;
 }
 .calc-cell {
-    background: var(--grey-cell) !important;
+    background: #ffcdd2 !important;
     color: #455a64;
     text-align: right;
 }
@@ -277,6 +279,7 @@ table tr:hover td { background: rgba(25,118,210,.04) !important; }
 .editable.selected { outline: 2px solid var(--blue-light) !important; outline-offset: -2px; background: #fff !important; }
 /* Нативный input внутри ячейки при редактировании */
 .editable:has(input.cell-input) { background: #fff !important; outline: 2px solid var(--blue-light) !important; outline-offset: -2px; }
+.editable.multi-selected { background: #bbdefb !important; outline: 2px solid #1565c0 !important; outline-offset: -2px; }
 .editable.fill-target {
     background: #e3f2fd !important;
     outline: 2px dashed var(--blue-light);

@@ -6,7 +6,6 @@ echo ============================================================
 echo   Fuel Tracker
 echo ============================================================
 
-REM Проверка Python
 python --version >nul 2>&1
 if errorlevel 1 (
     echo ERROR: Python not found. Install Python 3.9+ from python.org
@@ -14,7 +13,6 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Автообновление через git
 git --version >nul 2>&1
 if not errorlevel 1 (
     echo Checking for updates...
@@ -23,7 +21,7 @@ if not errorlevel 1 (
     if not errorlevel 1 (
         echo Update found, applying...
         git pull origin main --rebase >nul 2>&1
-        echo Updated to latest version.
+        echo Updated.
     ) else (
         echo No updates.
     )

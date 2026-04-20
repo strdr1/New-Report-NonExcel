@@ -224,8 +224,8 @@ async function loadMonth(profileId, year, month) {
         </div>
 
         <div class="table-hint no-print">
-            <span class="hint-yellow">Жёлтые ячейки</span> — вводите данные &nbsp;|&nbsp;
-            <span class="hint-grey">Серые ячейки</span> — рассчитываются автоматически
+            <span class="hint-blue">Синие ячейки</span> — вводите данные &nbsp;|&nbsp;
+            <span class="hint-red">Красные ячейки</span> — рассчитываются автоматически
         </div>
 
         <div class="table-section">
@@ -400,6 +400,11 @@ let fillStartCell = null;
 let fillTargetCells = [];
 let cellEditController = null;  // AbortController для снятия listeners при перезагрузке
 
+// Multi-cell drag selection
+let selectedCells = new Set();
+let dragSelectActive = false;
+let dragSelectStart = null;
+
 function makeCellsEditable(profileId, year, month, inputFields) {
     if (cellEditController) cellEditController.abort();
     cellEditController = new AbortController();
@@ -408,6 +413,9 @@ function makeCellsEditable(profileId, year, month, inputFields) {
     document.querySelectorAll('.editable').forEach(cell => {
         cell.addEventListener('click', (e) => {
             if (e.target.classList.contains('fill-handle')) return;
+
+            // Расчётные ячейки (красные) — только через ПКМ для форматирования, не редактируются
+            if (cell.classList.contains('calc-cell')) return;
 
             if (selectedCell && selectedCell !== cell) {
                 if (selectedCell.querySelector('input.cell-input')) {
@@ -467,7 +475,51 @@ function makeCellsEditable(profileId, year, month, inputFields) {
                 removeFillHandle();
                 selectedCell = null;
             }
+            clearDragSelection();
         }
+    }, { signal });
+
+    // Drag-select: mousedown on cell starts selection
+    document.querySelectorAll('.editable').forEach(cell => {
+        cell.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('fill-handle')) return;
+            if (e.button !== 0) return;  // only LMB
+            // Don't activate yet — wait for actual movement to distinguish drag from click
+            dragSelectStart = cell;
+            dragSelectActive = false;
+        }, { signal });
+
+        cell.addEventListener('mousemove', (e) => {
+            if (!dragSelectStart) return;
+            if (e.buttons !== 1) { dragSelectStart = null; dragSelectActive = false; clearDragSelection(); return; }
+            // Activate drag-select on first move
+            if (!dragSelectActive) {
+                dragSelectActive = true;
+                clearDragSelection();
+            }
+            clearDragSelection();
+            // Select all cells between dragSelectStart and this cell (same column/field only)
+            const field = dragSelectStart.dataset.field;
+            const startRow = dragSelectStart.closest('tr');
+            const endRow = cell.closest('tr');
+            if (!startRow || !endRow) return;
+            const startDay = parseInt(startRow.dataset.day);
+            const endDay = parseInt(endRow.dataset.day);
+            const minDay = Math.min(startDay, endDay);
+            const maxDay = Math.max(startDay, endDay);
+            document.querySelectorAll('tr[data-day]').forEach(row => {
+                const day = parseInt(row.dataset.day);
+                if (day >= minDay && day <= maxDay) {
+                    const c = row.querySelector(`.editable[data-field="${field}"]`);
+                    if (c) { c.classList.add('multi-selected'); selectedCells.add(c); }
+                }
+            });
+        }, { signal });
+    });
+
+    document.addEventListener('mouseup', (e) => {
+        if (e.button !== 0) return;
+        dragSelectActive = false;
     }, { signal });
 }
 
@@ -544,7 +596,9 @@ function addFillHandle(cell, profileId, year, month) {
             document.removeEventListener('mouseup', onFillEnd);
             
             if (fillTargetCells.length > 0) {
-                const sourceValue = parseFloat(fillStartCell.textContent.trim()) || 0;
+                const inp = fillStartCell.querySelector('input.cell-input');
+                const rawText = inp ? inp.value.trim() : (fillStartCell.dataset.originalValue || fillStartCell.textContent.trim());
+                const sourceValue = parseFloat(rawText) || 0;
                 const field = fillStartCell.dataset.field;
                 
                 // Update all target cells
@@ -579,6 +633,11 @@ function removeFillHandle() {
     if (existingHandle) {
         existingHandle.remove();
     }
+}
+
+function clearDragSelection() {
+    selectedCells.forEach(c => c.classList.remove('multi-selected'));
+    selectedCells.clear();
 }
 
 function startEditing(cell) {
@@ -1088,8 +1147,11 @@ function _applyFormat(cell, action, value) {
 }
 
 function formatCell(action, value) {
-    if (!currentFormattedCell) return;
-    _applyFormat(currentFormattedCell, action, value);
+    if (selectedCells.size > 0) {
+        selectedCells.forEach(cell => _applyFormat(cell, action, value));
+    } else if (currentFormattedCell) {
+        _applyFormat(currentFormattedCell, action, value);
+    }
 }
 
 function formatAllCells(action, value) {
@@ -1157,7 +1219,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cell) {
             e.preventDefault();
             currentFormattedCell = cell;
-            
+            // If no drag selection, make right-clicked cell the selection
+            if (selectedCells.size === 0) {
+                selectedCells.add(cell);
+                cell.classList.add('multi-selected');
+            } else if (!selectedCells.has(cell)) {
+                // Right-clicked outside selection — reset to just this cell
+                clearDragSelection();
+                selectedCells.add(cell);
+                cell.classList.add('multi-selected');
+            }
+
             contextMenu.style.display = 'block';
             contextMenu.style.left = e.pageX + 'px';
             contextMenu.style.top = e.pageY + 'px';
@@ -1168,6 +1240,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.context-menu') && !e.target.closest('.context-menu-close')) {
             contextMenu.style.display = 'none';
+            clearDragSelection();
         }
     });
 });
@@ -1177,6 +1250,7 @@ function closeContextMenu() {
     if (contextMenu) {
         contextMenu.style.display = 'none';
     }
+    clearDragSelection();
 }
 
 let copiedValue = null;
