@@ -7,23 +7,32 @@ bp = Blueprint('months', __name__, url_prefix='/api/profiles')
 
 
 def _get_initial_values(db, year, month_num):
-    """Получить начальные значения спидометра и бензина для месяца."""
+    """Получить начальные значения спидометра и бензина для месяца.
+    Идём назад по месяцам до первого с реальными данными."""
     if month_num == 1:
         return year.initial_odometer or 0.0, year.initial_fuel or 0.0
 
-    prev_month = db.query(Month).filter(
-        Month.year_id == year.id,
-        Month.month == month_num - 1
-    ).first()
+    # Ищем последний месяц с реальными данными, начиная с предыдущего
+    for m in range(month_num - 1, 0, -1):
+        prev_month = db.query(Month).filter(
+            Month.year_id == year.id,
+            Month.month == m
+        ).first()
 
-    if prev_month:
+        if not prev_month:
+            continue
+
+        # Ищем последний день с реальными расчётными данными
         last = db.query(DailyRecord).filter(
-            DailyRecord.month_id == prev_month.id
+            DailyRecord.month_id == prev_month.id,
+            DailyRecord.odometer_end != None
         ).order_by(DailyRecord.day.desc()).first()
+
         if last:
             return (last.odometer_end or 0.0), (last.fuel_remaining or 0.0)
 
-    return 0.0, 0.0
+    # Если ни один предыдущий месяц не имеет данных — берём начало года
+    return year.initial_odometer or 0.0, year.initial_fuel or 0.0
 
 
 def _fuel_rate(profile, month_num, month=None):
@@ -72,6 +81,15 @@ def get_month(profile_id, year_value, month_num):
         records = db.query(DailyRecord).filter(
             DailyRecord.month_id == month.id
         ).order_by(DailyRecord.day).all()
+
+        # День 1: если спидометр конец дня не заполнен — подставляем начальный спидометр
+        if records and records[0].day == 1 and not records[0].odometer_end_day and initial_odometer:
+            records[0].odometer_end_day = initial_odometer
+            db.commit()
+            # Пересчитываем с первого дня
+            fuel_rate_val = _fuel_rate(profile, month_num, month)
+            CalculationService.recalculate_from(records, 0, initial_odometer, initial_fuel, fuel_rate_val)
+            db.commit()
 
         result = month.to_dict()
         result['computed_initial_odometer'] = initial_odometer
