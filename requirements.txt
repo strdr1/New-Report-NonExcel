@@ -8,6 +8,9 @@ pywebview==5.3
 # Database
 sqlalchemy==2.0.23
 
+# Excel export
+openpyxl==3.1.2
+
 # Testing
 pytest==7.4.3
 pytest-cov==4.1.0

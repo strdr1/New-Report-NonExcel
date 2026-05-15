@@ -196,6 +196,8 @@ async function loadMonth(profileId, year, month) {
             <button onclick="printDailyTable()">Печать записей</button>
             <button onclick="printReportTable()">Печать отчёта</button>
             <button onclick="printSignature()">Печать итогов</button>
+            <button onclick="exportToExcel(${profileId}, ${year}, ${month})">📊 Excel</button>
+            <button onclick="exportToPdf()">📄 PDF</button>
         </div>
 
         <div class="month-header">
@@ -852,15 +854,23 @@ function updateBreadcrumb(text) {
 }
 
 // Print functions
-function _printHtml(innerHtml) {
+function _printHtml(innerHtml, orientation) {
     const frame = document.getElementById('print-frame');
     const app   = document.getElementById('app');
+    // Динамическая ориентация страницы
+    let pageStyle = document.getElementById('print-page-style');
+    if (!pageStyle) {
+        pageStyle = document.createElement('style');
+        pageStyle.id = 'print-page-style';
+        document.head.appendChild(pageStyle);
+    }
+    const ori = (orientation === 'landscape') ? 'landscape' : 'portrait';
+    pageStyle.textContent = `@media print { @page { size: A4 ${ori}; margin: 0.6cm 0.8cm; } }`;
+
     frame.innerHTML = innerHtml;
-    // Показываем только print-frame, скрываем всё остальное
     frame.style.cssText = 'display:block';
     app.style.cssText   = 'display:none';
     window.print();
-    // Восстанавливаем
     app.style.cssText   = '';
     frame.style.cssText = 'display:none';
     frame.innerHTML = '';
@@ -875,10 +885,10 @@ function _docHeader(profile, year, month, title) {
                         'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
     const mn = monthNames[month - 1];
     return `
-        <div style="text-align:center;font-family:'Segoe UI',Arial,sans-serif;margin-bottom:10px;color:#000;">
-            <div style="font-size:20px;font-weight:700;letter-spacing:2px;margin-bottom:4px;">${title || 'ОТЧЕТ'}</div>
-            <div style="font-size:11px;font-weight:700;margin-bottom:2px;">за ${mn.toLowerCase()} месяц ${year} года</div>
-            <div style="font-size:10px;line-height:1.8;">
+        <div style="text-align:center;font-family:'Segoe UI',Arial,sans-serif;margin-bottom:8px;color:#000;">
+            <div style="font-size:18px;font-weight:700;letter-spacing:2px;margin-bottom:4px;">${title || 'ОТЧЕТ'}</div>
+            <div style="font-size:12px;font-weight:700;margin-bottom:4px;">за ${mn.toLowerCase()} месяц ${year} года</div>
+            <div style="font-size:11px;line-height:1.6;">
                 по автомашине <b>${profile.car_brand}</b><br>
                 Гос. номер <b>${profile.license_plate}</b><br>
                 Водитель <b>${profile.name}</b>
@@ -891,10 +901,10 @@ const MONTH_NAMES = ['Январь','Февраль','Март','Апрель','
 // Inline стили для печатных таблиц — никаких классов приложения
 const _B = '0.3px solid #000';
 const _PS = {
-    table: `width:100%;border-collapse:separate;border-spacing:0;font-size:8px;border-top:${_B};border-left:${_B};`,
-    th: `border-right:${_B};border-bottom:${_B};padding:5px 8px;text-align:center;font-weight:700;background:#fff;color:#000;`,
-    td: `border-right:${_B};border-bottom:${_B};padding:4px 8px;text-align:center;background:#fff;color:#000;`,
-    tdTotal: `border-right:${_B};border-bottom:${_B};padding:4px 8px;text-align:center;background:#fff;color:#000;font-weight:700;`,
+    table: `width:100%;border-collapse:separate;border-spacing:0;font-size:12px;border-top:${_B};border-left:${_B};`,
+    th: `border-right:${_B};border-bottom:${_B};padding:3px 5px;text-align:center;font-weight:700;background:#fff;color:#000;font-size:11px;line-height:1.2;`,
+    td: `border-right:${_B};border-bottom:${_B};padding:2px 5px;text-align:center;background:#fff;color:#000;font-size:12px;line-height:1.2;`,
+    tdTotal: `border-right:${_B};border-bottom:${_B};padding:3px 5px;text-align:center;background:#fff;color:#000;font-weight:700;font-size:12px;line-height:1.2;`,
 };
 
 function _buildPrintTables(profile, records, reportRows, year, month) {
@@ -995,7 +1005,20 @@ function printReportTable() {
     const m = window._printMeta;
     if (!m) return;
     const tableHtml = document.getElementById('print-report-data').innerHTML;
-    _printHtml(`${_docHeader(m.profile, m.year, m.month, 'ОТЧЕТ')}${tableHtml}`);
+    const t    = window._reportTotals || {};
+    const km   = t.totKm   ? t.totKm.toFixed(0)   : '—';
+    const fuel = t.totFuel ? t.totFuel.toFixed(1)  : '—';
+    const mn   = MONTH_NAMES[m.month-1];
+    const blank = (w) => `<span style="display:inline-block;width:${w}px;border-bottom:1px solid #000;vertical-align:bottom;margin:0 6px;"></span>`;
+    const summary = `
+        <div style="margin-top:12px;font-family:'Segoe UI',Arial,sans-serif;font-size:12px;line-height:2.2;color:#000;">
+            <div>Пробег за <b>${mn.toLowerCase()} месяц</b> <b>${km}</b> км</div>
+            <div>Расход бензина по норме <b>${fuel}</b> л</div>
+            <div>Фактически израсходовано ${blank(120)} л</div>
+            <div>Перерасход /недорасход/ ${blank(120)} л</div>
+            <div style="margin-top:10px;">Водитель ${blank(100)} (${m.profile.name})</div>
+        </div>`;
+    _printHtml(`${_docHeader(m.profile, m.year, m.month, 'ОТЧЕТ')}${tableHtml}${summary}`, 'portrait');
 }
 
 function printSignature() {
@@ -1007,7 +1030,7 @@ function printSignature() {
     const mn   = MONTH_NAMES[m.month-1];
     const blank = (w) => `<span style="display:inline-block;width:${w}px;border-bottom:1px solid #000;vertical-align:bottom;margin:0 6px;"></span>`;
     _printHtml(`
-        <div style="text-align:center;margin-top:80px;font-family:'Segoe UI',Arial,sans-serif;font-size:13px;line-height:2.8;color:#000;">
+        <div style="text-align:center;margin-top:80px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;line-height:2.8;color:#000;">
             <div>Пробег за <b>${mn.toLowerCase()} месяц</b> <b>${km}</b> км</div>
             <div>Расход бензина по норме <b>${fuel}</b> л</div>
             <div>Фактически израсходовано ${blank(120)} л</div>
@@ -1015,6 +1038,20 @@ function printSignature() {
             <div style="margin-top:24px;">Водитель ${blank(80)} (${m.profile.name})</div>
         </div>
     `);
+}
+
+// ===================== EXPORT =====================
+function exportToExcel(profileId, year, month) {
+    const url = `/api/profiles/${profileId}/years/${year}/months/${month}/export`;
+    // Открываем в новом окне — браузер скачает файл
+    window.location.href = url;
+}
+
+function exportToPdf() {
+    // Печатает отчёт через стандартный диалог — пользователь выбирает "Сохранить как PDF" /
+    // "Microsoft Print to PDF" в качестве принтера.
+    alert('В открывшемся окне печати выберите принтер «Сохранить как PDF» (или «Microsoft Print to PDF»), затем нажмите «Печать».');
+    printReportTable();
 }
 
 // ===================== UPDATES =====================

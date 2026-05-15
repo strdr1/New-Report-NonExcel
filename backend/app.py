@@ -23,11 +23,12 @@ def create_app():
     init_db()
 
     # Register blueprints
-    from backend.routes import profiles, years, months, update
+    from backend.routes import profiles, years, months, update, export
     app.register_blueprint(profiles.bp)
     app.register_blueprint(years.bp)
     app.register_blueprint(months.bp)
     app.register_blueprint(update.bp)
+    app.register_blueprint(export.bp)
 
     def _no_cache(response):
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'

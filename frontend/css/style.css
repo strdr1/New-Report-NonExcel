@@ -423,7 +423,7 @@ table tr:hover td { background: rgba(25,118,210,.04) !important; }
 /* ===================== PRINT FRAME CONTENT ===================== */
 #print-frame {
     font-family: 'Segoe UI', Arial, sans-serif;
-    font-size: 8px; color: #000 !important; background: #fff !important;
+    font-size: 11px; color: #000 !important; background: #fff !important;
     position: fixed; top: 0; left: 0; width: 100%; z-index: 9999;
     padding: 0; margin: 0;
 }
@@ -435,7 +435,7 @@ table tr:hover td { background: rgba(25,118,210,.04) !important; }
     border-bottom: 1px solid #000; padding-bottom: 1px;
 }
 #print-frame table {
-    width: 100%; border-collapse: separate !important; border-spacing: 0 !important; font-size: 8px; table-layout: auto;
+    width: 100%; border-collapse: separate !important; border-spacing: 0 !important; font-size: 11px; table-layout: auto;
 }
 /* th и td стилизуются через inline-стили в _PS (app.js) */
 
